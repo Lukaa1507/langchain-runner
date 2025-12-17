@@ -4,11 +4,9 @@ This example shows how to use langchain-runner with a LangChain v1 agent.
 You'll need to install langchain and set up your LLM credentials.
 
 Install dependencies:
-    pip install langchain-runner langchain langchain-openai
+    pip install langchain-runner[mcp] langchain langchain-anthropic
 
-Set environment variable (choose one):
-    export OPENAI_API_KEY=your-key-here
-    # or
+Set environment variable:
     export ANTHROPIC_API_KEY=your-key-here
 
 Run:
@@ -18,44 +16,49 @@ Run:
 from langchain_runner import Runner
 
 # ============================================================================
-# OPTION 1: Using LangChain v1 create_agent (RECOMMENDED)
+# OPTION 1: Using LangChain v1 create_agent with MCP Tools (RECOMMENDED)
 # ============================================================================
 #
+# import asyncio
 # from langchain.agents import create_agent
+# from langchain_mcp_adapters.client import MultiServerMCPClient
 #
-# # Define tools
-# def search(query: str) -> str:
-#     """Search the web for information."""
-#     return f"Search results for: {query}"
+# async def create_mcp_agent():
+#     # Connect to MCP server(s) that provide your tools
+#     client = MultiServerMCPClient({
+#         "tools": {
+#             "transport": "streamable_http",
+#             "url": "https://your-mcp-server.com/mcp",
+#         }
+#     })
+#     tools = await client.get_tools()
 #
-# def get_weather(city: str) -> str:
-#     """Get the current weather for a city."""
-#     return f"The weather in {city} is sunny, 72°F"
+#     # Create the agent with model string
+#     # Supported formats: "anthropic:claude-sonnet-4-5-20250929", "openai:gpt-4.1", etc.
+#     return create_agent(
+#         model="anthropic:claude-sonnet-4-5-20250929",
+#         tools=tools,
+#         system_prompt="You are a helpful assistant with access to external tools.",
+#     )
 #
-# # Create the agent with model string
-# # Supported formats: "openai:gpt-4o", "anthropic:claude-sonnet-4", etc.
-# agent = create_agent(
-#     model="openai:gpt-4o",
-#     tools=[search, get_weather],
-#     system_prompt="You are a helpful assistant that can search the web and check weather.",
-# )
+# agent = asyncio.get_event_loop().run_until_complete(create_mcp_agent())
 
 # ============================================================================
 # OPTION 2: Using explicit model instance (more control)
 # ============================================================================
 #
 # from langchain.agents import create_agent
-# from langchain_openai import ChatOpenAI
+# from langchain_anthropic import ChatAnthropic
 #
-# model = ChatOpenAI(
-#     model="gpt-4o",
+# model = ChatAnthropic(
+#     model="claude-sonnet-4-5-20250929",
 #     temperature=0,
-#     max_tokens=2048,
+#     max_tokens=4096,
 # )
 #
 # agent = create_agent(
 #     model=model,
-#     tools=[search, get_weather],
+#     tools=tools,  # From MCP or custom tools
 #     system_prompt="You are a helpful assistant.",
 # )
 
@@ -70,12 +73,12 @@ from langchain_runner import Runner
 # )
 #
 # agent = create_agent(
-#     model="openai:gpt-4o",
-#     tools=[search, get_weather],
+#     model="anthropic:claude-sonnet-4-5-20250929",
+#     tools=tools,  # From MCP
 #     system_prompt="You are a helpful assistant.",
 #     middleware=[
 #         PIIMiddleware("email", strategy="redact", apply_to_input=True),
-#         SummarizationMiddleware(model="openai:gpt-4o", trigger={"tokens": 500}),
+#         SummarizationMiddleware(model="anthropic:claude-sonnet-4-5-20250929", trigger={"tokens": 500}),
 #     ],
 # )
 

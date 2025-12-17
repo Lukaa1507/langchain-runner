@@ -20,7 +20,7 @@ from langchain.agents import create_agent
 
 # Your LangChain agent (LangChain v1+)
 agent = create_agent(
-    model="openai:gpt-4o",  # or "anthropic:claude-sonnet-4"
+    model="anthropic:claude-sonnet-4-5-20250929",  # or "openai:gpt-4.1"
     tools=[],
     system_prompt="You are a helpful assistant.",
 )
@@ -90,17 +90,50 @@ Response:
 
 ### Webhook Trigger
 
-Transform incoming webhook payloads into agent inputs:
+Receive webhooks from external services (GitHub, Stripe, Clerk, etc.) and transform them into agent inputs:
 
 ```python
-@runner.webhook("/github")
-async def on_github(payload: dict):
-    pr = payload.get("pull_request", {})
-    return f"Review this PR: {pr.get('title')}"
+@runner.webhook("/clerk")
+async def on_clerk_user(payload: dict):
+    event_type = payload.get("type")
+    user = payload.get("data", {})
+    return f"Handle Clerk event '{event_type}' for user: {user.get('email_addresses', [{}])[0].get('email_address')}"
 ```
 
+**Your webhook URL will be:**
+```
+https://<your-domain>/webhook/<name>
+```
+
+For the example above: `https://your-server.com/webhook/clerk`
+
+#### Setting Up Webhooks
+
+**1. For local development, expose your server with ngrok:**
+
 ```bash
-# GitHub sends a webhook to http://your-server:8000/webhook/github
+# Start your runner
+python my_agent.py  # Starts server on port 8000
+
+# In another terminal, expose it
+ngrok http 8000
+# Output: https://abc123.ngrok.io -> http://localhost:8000
+```
+
+Your webhook URL is now: `https://abc123.ngrok.io/webhook/clerk`
+
+**2. Configure the external service (example: Clerk):**
+
+1. Go to your Clerk Dashboard → Webhooks
+2. Click "Add Endpoint"
+3. Enter your webhook URL: `https://abc123.ngrok.io/webhook/clerk`
+4. Select events to subscribe to: `user.created`, `user.updated`, etc.
+5. Save the endpoint
+
+**3. For production**, deploy your runner to a cloud provider and use that URL:
+
+```
+https://my-agent.railway.app/webhook/clerk
 ```
 
 ### Cron Trigger
@@ -121,27 +154,35 @@ async def check_alerts():
     return "Check for new alerts"
 ```
 
-## Supported Agents
+## Creating Your Agent
 
-langchain-runner works with:
+### LangChain Agents (Recommended)
 
-### 1. LangChain Agents (Recommended - LangChain v1+)
+The recommended way to create agents is using LangChain v1+'s `create_agent` function:
 
 ```python
 from langchain.agents import create_agent
 
 # Using model string (simple)
 agent = create_agent(
-    model="openai:gpt-4o",
+    model="anthropic:claude-sonnet-4-5-20250929",  # or "openai:gpt-4.1"
     tools=[my_tool],
     system_prompt="You are a helpful assistant.",
 )
 runner = Runner(agent)
+```
 
-# Using model instance (more control)
-from langchain_openai import ChatOpenAI
+You can also use a model instance for more control:
 
-model = ChatOpenAI(model="gpt-4o", temperature=0)
+```python
+from langchain.agents import create_agent
+from langchain_anthropic import ChatAnthropic
+
+model = ChatAnthropic(
+    model="claude-sonnet-4-5-20250929",
+    temperature=0,
+    max_tokens=4096,
+)
 agent = create_agent(
     model=model,
     tools=[my_tool],
@@ -150,22 +191,22 @@ agent = create_agent(
 runner = Runner(agent)
 ```
 
-### 2. Async Callable
+### Custom Agents (Advanced)
+
+For advanced use cases, you can pass any callable that accepts and returns the LangGraph message format:
 
 ```python
+# Async callable
 async def my_agent(input: dict) -> dict:
     messages = input["messages"]
-    # Process messages...
+    # Your custom logic...
     return {"messages": [..., {"role": "assistant", "content": "response"}]}
 
 runner = Runner(my_agent)
-```
 
-### 3. Sync Callable (runs in thread pool)
-
-```python
+# Sync callable (runs in thread pool automatically)
 def my_sync_agent(input: dict) -> dict:
-    return {"response": "Hello!"}
+    return {"messages": [{"role": "assistant", "content": "Hello!"}]}
 
 runner = Runner(my_sync_agent)
 ```
@@ -236,29 +277,89 @@ Response:
 }
 ```
 
+## Using MCP Tools
+
+The recommended way to add tools to your agent is via [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). MCP provides a standard way to connect AI agents to external tools and data sources.
+
+First, install the MCP adapter:
+
+```bash
+pip install langchain-runner[mcp]
+```
+
+Then connect to MCP servers and use their tools:
+
+```python
+import asyncio
+from langchain_runner import Runner
+from langchain.agents import create_agent
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+async def create_mcp_agent():
+    # Connect to MCP servers
+    client = MultiServerMCPClient({
+        "tools": {
+            "transport": "streamable_http",
+            "url": "https://your-mcp-server.com/mcp",
+        },
+        # You can connect to multiple servers
+        "local_tools": {
+            "transport": "stdio",
+            "command": "python",
+            "args": ["./my_mcp_server.py"],
+        },
+    })
+    
+    # Get tools from all connected servers
+    tools = await client.get_tools()
+    print(f"Loaded {len(tools)} tools from MCP servers")
+    
+    # Create agent with MCP tools
+    agent = create_agent(
+        model="anthropic:claude-sonnet-4-5-20250929",
+        tools=tools,
+        system_prompt="You are a helpful assistant with access to external tools.",
+    )
+    
+    return agent
+
+# Create agent at startup
+agent = asyncio.get_event_loop().run_until_complete(create_mcp_agent())
+runner = Runner(agent, name="mcp-agent")
+
+@runner.webhook("/process")
+async def on_process(payload: dict):
+    return f"Process this request: {payload}"
+
+if __name__ == "__main__":
+    runner.serve()
+```
+
 ## Example: Full Setup
 
 ```python
+import asyncio
 from langchain_runner import Runner
 from langchain.agents import create_agent
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
-# Define tools
-def search(query: str) -> str:
-    """Search the web."""
-    return f"Results for: {query}"
+async def setup_agent():
+    # Connect to your MCP server with tools (Notion, Slack, etc.)
+    client = MultiServerMCPClient({
+        "tools": {
+            "transport": "streamable_http",
+            "url": "https://your-mcp-server.com/mcp",
+        }
+    })
+    tools = await client.get_tools()
+    
+    return create_agent(
+        model="anthropic:claude-sonnet-4-5-20250929",
+        tools=tools,
+        system_prompt="You are a helpful assistant.",
+    )
 
-def get_weather(city: str) -> str:
-    """Get weather for a city."""
-    return f"Weather in {city}: Sunny, 72°F"
-
-# Create agent (LangChain v1+)
-agent = create_agent(
-    model="openai:gpt-4o",
-    tools=[search, get_weather],
-    system_prompt="You are a helpful assistant.",
-)
-
-# Create runner
+agent = asyncio.get_event_loop().run_until_complete(setup_agent())
 runner = Runner(agent, name="my-assistant")
 
 # HTTP trigger
