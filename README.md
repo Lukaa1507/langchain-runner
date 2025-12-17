@@ -1,6 +1,8 @@
 # langchain-runner
 
-Run your LangChain/LangGraph agents autonomously with webhooks, cron, and HTTP triggers.
+**Zero-configuration way to expose your LangChain/LangGraph agents as autonomous services.**
+
+Simply wrap your agent with `Runner` and it becomes a web service with webhook endpoints, cron schedules, and HTTP triggers—no infrastructure code needed.
 
 [![PyPI version](https://badge.fury.io/py/langchain-runner.svg)](https://badge.fury.io/py/langchain-runner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -390,14 +392,6 @@ async def weekly_report():
 if __name__ == "__main__":
     runner.serve()
 ```
-
-## Philosophy
-
-langchain-runner follows the same philosophy as [fastapi-mcp](https://github.com/tadata-org/fastapi-mcp):
-
-- **Minimal configuration** - Works out of the box
-- **Decorator-based API** - Feels natural to Python developers
-- **"Just works"** - Focus on your agent, not the infrastructure
 
 ## License
 
